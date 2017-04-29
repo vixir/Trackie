@@ -27,6 +27,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -50,16 +51,18 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.internal.Utils;
+import io.realm.Realm;
+import io.realm.RealmChangeListener;
+import io.realm.RealmResults;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks, LocationListener {
 
     private static final String TAG = MapsActivity.class.getSimpleName();
-    private static final int INTERVAL = 10000; // 10 sec
-    private static final int FASTEST_INTERVAL = 5000;
-    private static final int SMALLEST_DISPLACEMENT = 10;
+
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 200;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 201;
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
@@ -73,32 +76,61 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Location mCurrentLocation;
     private boolean mLocationUpdateState = false;
     private BroadcastReceiver mReceiver;
+    private RealmChangeListener mRealmChangeListener;
+    private Realm mRealm = Realm.getDefaultInstance();
+    @BindView(R.id.start_stop_toggle)
+    protected Button mToggleButton;
+
+    //TODO toolbar title ONTRIP
+    //TODO update the button text as start or stop.
+    //TODO update table as false and note the end timestamp in the table
+    //TODO button text change, bottom bar layout with start stop.
+    //TODO open new activity to view map or same activity to view map, showing details of the trip.
+    //TODO Layout change when trip stops. Trip stops bottom bar will show the total time and map will pause. On bottombar dismissed user can start new trip.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         ButterKnife.bind(this);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
         if (isMyServiceRunning(LocationUpdateService.class)) {
+            Log.d(TAG, "service already running.");
             mRequestingLocationUpdates = true;
+            mToggleButton.setText("STOP");
+        } else {
+            mToggleButton.setText("START");
         }
+        mRealmChangeListener = new RealmChangeListener() {
+            @Override
+            public void onChange(Object element) {
+                Log.e(TAG, "callback received");
+                RealmResults<LatLngList> realmResults = (RealmResults<LatLngList>) element;
+                if (realmResults.size() == 0) {
+                    return;
+                }
+                MapsActivity.this.redrawLine(DBUtils.latLngFromLatLngPOJO(realmResults.last()));
+            }
+        };
         mReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 ArrayList<LatLng> latLngs = intent.getParcelableArrayListExtra(LocationUpdateService.LOC_MESSAGE);
                 if (null != mCurrentLocation && mRequestingLocationUpdates == true) {
-                    redrawLine(latLngs);
+                    MapsActivity.this.redrawLine(latLngs);
                 }
-                Log.e(TAG, "" + latLngs.size());
+                Log.e(TAG, "size location data :- " + latLngs.size());
             }
         };
+        LocalBroadcastManager.getInstance(this).registerReceiver((mReceiver), new IntentFilter(LocationUpdateService.LOC_RESULT));
+
         if (LocationUtils.checkPlayServices(this)) {
             buildGoogleApiClient();
         } else {
             finish();
         }
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
         createLocationRequest();
     }
 
@@ -109,7 +141,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             startLocationUpdates();
         }
     }
-
 
     @Override
     protected void onStart() {
@@ -122,14 +153,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onPause() {
         super.onPause();
-        if (null != mGoogleApiClient && mGoogleApiClient.isConnected()) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-        }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (null != mGoogleApiClient && mGoogleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+        }
         stopLocationUpdates();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
         if (null != mGoogleApiClient && mGoogleApiClient.isConnected()) {
@@ -148,17 +185,29 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
         if (!mRequestingLocationUpdates) {
+            mToggleButton.setText("STOP");
             mRequestingLocationUpdates = true;
+            mRealm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    LatLngList latLngList = realm.createObject(LatLngList.class, System.currentTimeMillis());
+                    Log.d(TAG, "New LatLng List Object Created");
+                }
+            });
             startLocationUpdates();
             Intent intent = new Intent(this, LocationUpdateIntentService.class);
             Bundle extras = new Bundle();
             extras.putParcelable(START_LOC, LocationUtils.locationToLatLng(mCurrentLocation));
+            intent.putExtras(extras);
             startService(intent);
-            LocalBroadcastManager.getInstance(this).registerReceiver((mReceiver), new IntentFilter(LocationUpdateService.LOC_RESULT));
             Log.d(TAG, "Periodic location updates started!");
         } else {
+            mToggleButton.setText("START");
             mRequestingLocationUpdates = false;
             Intent intent = new Intent(this, LocationUpdateService.class);
+            Bundle extras = new Bundle();
+            extras.putBoolean("stopservice", true);
+            intent.putExtras(extras);
             stopService(intent);
             Log.d(TAG, "Periodic location updates stopped!");
             placeMarkerOnMap(LocationUtils.locationToLatLng(mCurrentLocation));
@@ -199,6 +248,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
         mMap.getUiSettings().setZoomControlsEnabled(true);
         LatLng latLong;
+
+        mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+            @Override
+            public void onMapLoaded() {
+                RealmResults<LatLngList> latLngLists = mRealm.where(LatLngList.class).findAll();
+                latLngLists.addChangeListener(mRealmChangeListener);
+            }
+        });
         latLong = new LatLng(-34, 151);
         if (null != mCurrentLocation) {
             double latitude = mCurrentLocation.getLatitude();
@@ -220,6 +277,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void addMarkers(LatLng startlatLng, LatLng stopLatLng) {
+        if (mMap == null) {
+            return;
+        }
         MarkerOptions options = new MarkerOptions();
         options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)).alpha(0.8f);
         mMap.addMarker(options.position(startlatLng).title("start"));
@@ -235,21 +295,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void redrawLine(ArrayList<LatLng> points) {
         Log.d(TAG, "redraw");
+        if (null == mMap) {
+            return;
+        }
 
         final PolylineOptions options = new PolylineOptions().width(7).color(Color.BLUE);
         for (int i = 0; i < points.size(); i++) {
             LatLng point = points.get(i);
             options.add(point);
         }
-        if (null != mMap) {
-            mMap.clear();
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    line = mMap.addPolyline(options);
-                }
-            });
-        }
+        mMap.clear();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                line = mMap.addPolyline(options);
+            }
+        });
         if (points.size() > 0) {
             addMarkers(points.get(0), points.get(points.size() - 1));
             fixZoom(points);
@@ -259,11 +320,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     protected void createLocationRequest() {
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(INTERVAL);
-        mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
-        mLocationRequest.setSmallestDisplacement(SMALLEST_DISPLACEMENT); //added
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest = LocationUtils.getLocationRequest();
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(mLocationRequest);
         PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
         result.setResultCallback(
