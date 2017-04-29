@@ -110,6 +110,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -185,7 +186,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             if (mCurrentLocation != null) {
                 LatLng currentLatLng = LocationUtils.locationToLatLng(mCurrentLocation);
-                if (mMap != null) {
+                if (mMap != null && !mRequestingLocationUpdates) {
                     placeMarkerOnMap(currentLatLng);
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12));
                 }
@@ -211,7 +212,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onLocationChanged(Location location) {
-        if (null != location) {
+        if (null != location && !mRequestingLocationUpdates) {
             mCurrentLocation = location;
             LatLng latLng = LocationUtils.locationToLatLng(location);
             placeMarkerOnMap(latLng);
@@ -243,10 +244,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (null != mMap) {
             mMap.clear();
             runOnUiThread(new Runnable() {
-
                 @Override
                 public void run() {
-                    line = mMap.addPolyline(options);    //do your loop adding polyline
+                    line = mMap.addPolyline(options);
                 }
             });
         }
@@ -332,8 +332,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+
     @Override
     public void onConnectionSuspended(int i) {
+        Log.e(TAG, "connection suspended");
         mGoogleApiClient.connect();
     }
 
