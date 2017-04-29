@@ -4,12 +4,12 @@
         "source": "C:\\Users\\DELL\\.android\\build-cache\\bb6ed1d4fbc9c2413bd0ae08fa9d4717b7e76301\\output\\res\\layout\\abc_alert_dialog_button_bar_material.xml"
     },
     {
-        "merged": "C:\\Users\\DELL\\Desktop\\Trackie\\app\\build\\intermediates\\res\\merged\\debug\\layout\\abc_activity_chooser_view.xml",
-        "source": "C:\\Users\\DELL\\.android\\build-cache\\bb6ed1d4fbc9c2413bd0ae08fa9d4717b7e76301\\output\\res\\layout\\abc_activity_chooser_view.xml"
-    },
-    {
         "merged": "C:\\Users\\DELL\\Desktop\\Trackie\\app\\build\\intermediates\\res\\merged\\debug\\layout\\abc_search_view.xml",
         "source": "C:\\Users\\DELL\\.android\\build-cache\\bb6ed1d4fbc9c2413bd0ae08fa9d4717b7e76301\\output\\res\\layout\\abc_search_view.xml"
+    },
+    {
+        "merged": "C:\\Users\\DELL\\Desktop\\Trackie\\app\\build\\intermediates\\res\\merged\\debug\\layout\\abc_activity_chooser_view.xml",
+        "source": "C:\\Users\\DELL\\.android\\build-cache\\bb6ed1d4fbc9c2413bd0ae08fa9d4717b7e76301\\output\\res\\layout\\abc_activity_chooser_view.xml"
     },
     {
         "merged": "C:\\Users\\DELL\\Desktop\\Trackie\\app\\build\\intermediates\\res\\merged\\debug\\layout\\abc_action_bar_up_container.xml",

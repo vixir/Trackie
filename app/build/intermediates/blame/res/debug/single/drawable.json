@@ -28,12 +28,12 @@
         "source": "C:\\Users\\DELL\\.android\\build-cache\\bb6ed1d4fbc9c2413bd0ae08fa9d4717b7e76301\\output\\res\\drawable\\abc_ic_search_api_material.xml"
     },
     {
-        "merged": "C:\\Users\\DELL\\Desktop\\Trackie\\app\\build\\intermediates\\res\\merged\\debug\\drawable\\common_google_signin_btn_text_light_focused.xml",
-        "source": "C:\\Users\\DELL\\.android\\build-cache\\f47befb2c05b6b184ff347fc2132756e22346309\\output\\res\\drawable\\common_google_signin_btn_text_light_focused.xml"
-    },
-    {
         "merged": "C:\\Users\\DELL\\Desktop\\Trackie\\app\\build\\intermediates\\res\\merged\\debug\\drawable\\abc_ratingbar_indicator_material.xml",
         "source": "C:\\Users\\DELL\\.android\\build-cache\\bb6ed1d4fbc9c2413bd0ae08fa9d4717b7e76301\\output\\res\\drawable\\abc_ratingbar_indicator_material.xml"
+    },
+    {
+        "merged": "C:\\Users\\DELL\\Desktop\\Trackie\\app\\build\\intermediates\\res\\merged\\debug\\drawable\\common_google_signin_btn_text_light_focused.xml",
+        "source": "C:\\Users\\DELL\\.android\\build-cache\\f47befb2c05b6b184ff347fc2132756e22346309\\output\\res\\drawable\\common_google_signin_btn_text_light_focused.xml"
     },
     {
         "merged": "C:\\Users\\DELL\\Desktop\\Trackie\\app\\build\\intermediates\\res\\merged\\debug\\drawable\\abc_dialog_material_background.xml",
@@ -64,16 +64,16 @@
         "source": "C:\\Users\\DELL\\.android\\build-cache\\bb6ed1d4fbc9c2413bd0ae08fa9d4717b7e76301\\output\\res\\drawable\\abc_vector_test.xml"
     },
     {
-        "merged": "C:\\Users\\DELL\\Desktop\\Trackie\\app\\build\\intermediates\\res\\merged\\debug\\drawable\\abc_list_selector_holo_light.xml",
-        "source": "C:\\Users\\DELL\\.android\\build-cache\\bb6ed1d4fbc9c2413bd0ae08fa9d4717b7e76301\\output\\res\\drawable\\abc_list_selector_holo_light.xml"
+        "merged": "C:\\Users\\DELL\\Desktop\\Trackie\\app\\build\\intermediates\\res\\merged\\debug\\drawable\\notification_tile_bg.xml",
+        "source": "C:\\Users\\DELL\\.android\\build-cache\\bb6ed1d4fbc9c2413bd0ae08fa9d4717b7e76301\\output\\res\\drawable\\notification_tile_bg.xml"
     },
     {
         "merged": "C:\\Users\\DELL\\Desktop\\Trackie\\app\\build\\intermediates\\res\\merged\\debug\\drawable\\notification_bg_low.xml",
         "source": "C:\\Users\\DELL\\.android\\build-cache\\bb6ed1d4fbc9c2413bd0ae08fa9d4717b7e76301\\output\\res\\drawable\\notification_bg_low.xml"
     },
     {
-        "merged": "C:\\Users\\DELL\\Desktop\\Trackie\\app\\build\\intermediates\\res\\merged\\debug\\drawable\\notification_tile_bg.xml",
-        "source": "C:\\Users\\DELL\\.android\\build-cache\\bb6ed1d4fbc9c2413bd0ae08fa9d4717b7e76301\\output\\res\\drawable\\notification_tile_bg.xml"
+        "merged": "C:\\Users\\DELL\\Desktop\\Trackie\\app\\build\\intermediates\\res\\merged\\debug\\drawable\\abc_list_selector_holo_light.xml",
+        "source": "C:\\Users\\DELL\\.android\\build-cache\\bb6ed1d4fbc9c2413bd0ae08fa9d4717b7e76301\\output\\res\\drawable\\abc_list_selector_holo_light.xml"
     },
     {
         "merged": "C:\\Users\\DELL\\Desktop\\Trackie\\app\\build\\intermediates\\res\\merged\\debug\\drawable\\abc_list_selector_holo_dark.xml",

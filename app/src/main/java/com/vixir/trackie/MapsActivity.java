@@ -65,7 +65,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
     private static final String BROADCAST = "com.vixir.trackie.android.action.broadcast";
     public static final String START_LOC = "shift-start-location";
-    //    boolean mBound = false;
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
     private Polyline line;
@@ -74,21 +73,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Location mCurrentLocation;
     private boolean mLocationUpdateState = false;
     private BroadcastReceiver mReceiver;
-/*    private ServiceConnection mConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
-            LocationUpdateService.LocationUpdateBinder binder = (LocationUpdateService.LocationUpdateBinder) service;
-            mService = binder.getService();
-            mBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            mBound = false;
-        }
-    };*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,8 +113,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onStart() {
         super.onStart();
-//        Intent intent = new Intent(this, LocationUpdateService.class);
-//        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
         if (null != mGoogleApiClient) {
             mGoogleApiClient.connect();
         }
@@ -152,10 +134,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (null != mGoogleApiClient && mGoogleApiClient.isConnected()) {
             mGoogleApiClient.disconnect();
         }
-       /* if (mBound) {
-            unbindService(mConnection);
-            mBound = false;
-        }*/
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -234,6 +212,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onLocationChanged(Location location) {
         if (null != location) {
+            mCurrentLocation = location;
             LatLng latLng = LocationUtils.locationToLatLng(location);
             placeMarkerOnMap(latLng);
         }
@@ -266,8 +245,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             runOnUiThread(new Runnable() {
 
                 @Override
-                public void run()
-                {
+                public void run() {
                     line = mMap.addPolyline(options);    //do your loop adding polyline
                 }
             });
