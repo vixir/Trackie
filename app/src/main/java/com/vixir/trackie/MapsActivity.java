@@ -10,6 +10,7 @@ import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
@@ -36,6 +37,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -81,6 +83,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected Button mToggleButton;
     boolean loading = true;
 
+    @BindView(R.id.animation_view)
+    LottieAnimationView mAnimationView;
+
     @BindView(R.id.shift_end_message)
     protected TextView shiftEndMessage;
 
@@ -98,7 +103,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         ButterKnife.bind(this);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
         if (isMyServiceRunning(LocationUpdateService.class)) {
             Log.d(TAG, "service already running.");
             mRequestingLocationUpdates = true;
@@ -136,6 +140,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         createLocationRequest();
     }
+
 
     @Override
     protected void onResume() {
@@ -242,7 +247,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             String hours = (diffHours == 0) ? "" : diffHours + "h";
             String min = (diffMinutes == 0) ? "" : diffMinutes + "m";
             String sec = (diffSeconds == 0) ? "" : diffSeconds + "s";
-            shiftEndMessage.setText("Shift Duration : "+days + " " + hours + "" + min + " " + sec + " ");
+            shiftEndMessage.setText("Shift Duration : " + days + " " + hours + "" + min + " " + sec + " ");
             shiftEndMessage.setVisibility(View.VISIBLE);
         }
 
@@ -262,6 +267,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     LOCATION_PERMISSION_REQUEST_CODE);
             return;
         }
+
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         LocationAvailability locationAvailability = LocationServices.FusedLocationApi.getLocationAvailability(mGoogleApiClient);
         if (mRequestingLocationUpdates) {
@@ -328,6 +334,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void addMarkers(LatLng startlatLng, LatLng stopLatLng) {
         if (mMap == null) {
             return;
+        }
+        if (mAnimationView.isAnimating()) {
+            mAnimationView.cancelAnimation();
+            mAnimationView.setVisibility(View.GONE);
+            mToggleButton.setVisibility(View.VISIBLE);
         }
         MarkerOptions options = new MarkerOptions();
         options.icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_start)).flat(true).anchor(0.5f, 0.5f);
@@ -415,7 +426,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         //noinspection MissingPermission
         mMap.setMyLocationEnabled(true);
         mMap.addMarker(markerOptions);
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 12));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 12), new GoogleMap.CancelableCallback() {
+            @Override
+            public void onFinish() {
+                mAnimationView.cancelAnimation();
+                mAnimationView.setVisibility(View.GONE);
+                mToggleButton.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onCancel() {
+            }
+        });
     }
 
     private void fixZoom(List<LatLng> points) {
