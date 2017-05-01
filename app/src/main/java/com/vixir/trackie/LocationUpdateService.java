@@ -52,7 +52,6 @@ public class LocationUpdateService extends Service implements GoogleApiClient.Co
         }
     }
 
-
     @Override
     public IBinder onBind(Intent arg0) {
         Log.d(TAG, "onBind");

@@ -3,12 +3,10 @@ package com.vixir.trackie;
 import android.Manifest;
 import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
-import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 
@@ -20,7 +18,6 @@ import com.google.android.gms.location.LocationListener;
 
 import android.location.Location;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -54,7 +51,6 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import butterknife.internal.Utils;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
@@ -80,6 +76,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Realm mRealm = Realm.getDefaultInstance();
     @BindView(R.id.start_stop_toggle)
     protected Button mToggleButton;
+    boolean loading = true;
 
     //TODO toolbar title ONTRIP
     //TODO update the button text as start or stop.
@@ -106,7 +103,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mRealmChangeListener = new RealmChangeListener() {
             @Override
             public void onChange(Object element) {
-                Log.e(TAG, "callback received");
+                Log.d(TAG, "callback received");
                 RealmResults<LatLngList> realmResults = (RealmResults<LatLngList>) element;
                 if (realmResults.size() == 0) {
                     return;
@@ -121,7 +118,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (null != mCurrentLocation && mRequestingLocationUpdates == true) {
                     MapsActivity.this.redrawLine(latLngs);
                 }
-                Log.e(TAG, "size location data :- " + latLngs.size());
+                Log.d(TAG, "size location data :- " + latLngs.size());
             }
         };
         LocalBroadcastManager.getInstance(this).registerReceiver((mReceiver), new IntentFilter(LocationUpdateService.LOC_RESULT));
@@ -145,6 +142,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onStart() {
         super.onStart();
+
         if (null != mGoogleApiClient) {
             mGoogleApiClient.connect();
         }
@@ -194,12 +192,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     Log.d(TAG, "New LatLng List Object Created");
                 }
             });
+            placeMarkerOnMap(LocationUtils.locationToLatLng(mCurrentLocation));
             startLocationUpdates();
-            Intent intent = new Intent(this, LocationUpdateIntentService.class);
-            Bundle extras = new Bundle();
-            extras.putParcelable(START_LOC, LocationUtils.locationToLatLng(mCurrentLocation));
-            intent.putExtras(extras);
-            startService(intent);
+            if (!isMyServiceRunning(LocationUpdateService.class)) {
+                Intent intent = new Intent(this, LocationUpdateIntentService.class);
+                Bundle extras = new Bundle();
+                extras.putParcelable(START_LOC, LocationUtils.locationToLatLng(mCurrentLocation));
+                intent.putExtras(extras);
+                startService(intent);
+            }
             Log.d(TAG, "Periodic location updates started!");
         } else {
             mToggleButton.setText("START");
@@ -210,7 +211,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             intent.putExtras(extras);
             stopService(intent);
             Log.d(TAG, "Periodic location updates stopped!");
-            placeMarkerOnMap(LocationUtils.locationToLatLng(mCurrentLocation));
+            stopLocationUpdates();
         }
     }
 
@@ -230,16 +231,29 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         LocationAvailability locationAvailability = LocationServices.FusedLocationApi.getLocationAvailability(mGoogleApiClient);
-
+        if (mRequestingLocationUpdates) {
+            updateMapFromDB();
+        }
         if (null != locationAvailability && locationAvailability.isLocationAvailable()) {
             mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             if (mCurrentLocation != null) {
                 LatLng currentLatLng = LocationUtils.locationToLatLng(mCurrentLocation);
                 if (mMap != null && !mRequestingLocationUpdates) {
+                    Log.d(TAG, "inside start Location Updates");
                     placeMarkerOnMap(currentLatLng);
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12));
                 }
             }
+        }
+    }
+
+    private void updateMapFromDB() {
+        RealmResults<LatLngList> realmQuery = mRealm.where(LatLngList.class).findAll();
+        Log.d(TAG, "Query size()" + realmQuery.size());
+        if (realmQuery != null && realmQuery.size() > 0) {
+            LatLngList currentLatLngList = realmQuery.last();
+            ArrayList<LatLng> latLngs = DBUtils.latLngFromLatLngPOJO(currentLatLngList);
+            redrawLine(latLngs);
         }
     }
 
@@ -261,6 +275,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             double latitude = mCurrentLocation.getLatitude();
             double longitude = mCurrentLocation.getLongitude();
             LatLng latLng = new LatLng(latitude, longitude);
+            Log.d(TAG, "inside on map ready");
             placeMarkerOnMap(latLng);
         } else {
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLong, 12));
@@ -272,6 +287,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (null != location && !mRequestingLocationUpdates) {
             mCurrentLocation = location;
             LatLng latLng = LocationUtils.locationToLatLng(location);
+            Log.d(TAG, "inside on location changed");
             placeMarkerOnMap(latLng);
         }
     }
@@ -281,11 +297,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
         MarkerOptions options = new MarkerOptions();
-        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)).alpha(0.8f);
+        options.icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_start)).flat(true).anchor(0.5f, 0.5f);
         mMap.addMarker(options.position(startlatLng).title("start"));
         mMap.setMyLocationEnabled(false);
         if (null != stopLatLng) {
-            options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)).alpha(0.8f);
+            options.icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_tracker));
             mMap.addMarker(options.position(stopLatLng).title("current"));
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(stopLatLng, 12));
         }
@@ -382,7 +398,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        Log.e(TAG, "connected");
+        Log.d(TAG, "connected");
         setUpMap();
         if (mLocationUpdateState) {
             startLocationUpdates();

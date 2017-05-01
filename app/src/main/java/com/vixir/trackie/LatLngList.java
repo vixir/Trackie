@@ -15,6 +15,8 @@ public class LatLngList extends RealmObject {
 
     private boolean isTripFinished;
 
+    private long stopTimeStamp;
+
     public RealmList<LatLngPojo> latLngList;
 
     public void setLatLngList(ArrayList<LatLng> latLngArrayList) {
@@ -38,5 +40,13 @@ public class LatLngList extends RealmObject {
 
     public void setTripFinished(boolean tripFinished) {
         isTripFinished = tripFinished;
+    }
+
+    public long getStopTimeStamp() {
+        return stopTimeStamp;
+    }
+
+    public void setStopTimeStamp(long stopTimeStamp) {
+        this.stopTimeStamp = stopTimeStamp;
     }
 }
