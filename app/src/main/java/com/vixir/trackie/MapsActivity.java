@@ -24,7 +24,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -46,6 +48,7 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import butterknife.BindView;
@@ -77,6 +80,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @BindView(R.id.start_stop_toggle)
     protected Button mToggleButton;
     boolean loading = true;
+
+    @BindView(R.id.shift_end_message)
+    protected TextView shiftEndMessage;
 
     //TODO toolbar title ONTRIP
     //TODO update the button text as start or stop.
@@ -185,6 +191,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (!mRequestingLocationUpdates) {
             mToggleButton.setText("STOP");
             mRequestingLocationUpdates = true;
+            hideShiftCompleted();
             mRealm.executeTransaction(new Realm.Transaction() {
                 @Override
                 public void execute(Realm realm) {
@@ -205,6 +212,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             mToggleButton.setText("START");
             mRequestingLocationUpdates = false;
+            showShiftCompleted();
             Intent intent = new Intent(this, LocationUpdateService.class);
             Bundle extras = new Bundle();
             extras.putBoolean("stopservice", true);
@@ -213,6 +221,31 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.d(TAG, "Periodic location updates stopped!");
             stopLocationUpdates();
         }
+    }
+
+    private void hideShiftCompleted() {
+        shiftEndMessage.setVisibility(View.GONE);
+    }
+
+    private void showShiftCompleted() {
+        RealmResults<LatLngList> realmQuery = mRealm.where(LatLngList.class).findAll();
+        if (realmQuery != null && realmQuery.size() > 0) {
+            LatLngList currentLatLngList = realmQuery.last();
+            long startShift = currentLatLngList.getId();
+            long stopShift = System.currentTimeMillis();
+            long diff = stopShift - startShift;
+            long diffSeconds = diff / 1000 % 60;
+            long diffMinutes = diff / (60 * 1000) % 60;
+            long diffHours = diff / (60 * 60 * 1000) % 24;
+            long diffDays = diff / (24 * 60 * 60 * 1000);
+            String days = (diffDays == 0) ? "" : diffDays + "d";
+            String hours = (diffHours == 0) ? "" : diffHours + "h";
+            String min = (diffMinutes == 0) ? "" : diffMinutes + "m";
+            String sec = (diffSeconds == 0) ? "" : diffSeconds + "s";
+            shiftEndMessage.setText("Shift Duration : "+days + " " + hours + "" + min + " " + sec + " ");
+            shiftEndMessage.setVisibility(View.VISIBLE);
+        }
+
     }
 
 
@@ -299,6 +332,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         MarkerOptions options = new MarkerOptions();
         options.icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_start)).flat(true).anchor(0.5f, 0.5f);
         mMap.addMarker(options.position(startlatLng).title("start"));
+        //noinspection MissingPermission
         mMap.setMyLocationEnabled(false);
         if (null != stopLatLng) {
             options.icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_tracker));
@@ -378,6 +412,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void placeMarkerOnMap(LatLng location) {
         MarkerOptions markerOptions = new MarkerOptions().position(location).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)).alpha(0.8f);
         mMap.clear();
+        //noinspection MissingPermission
         mMap.setMyLocationEnabled(true);
         mMap.addMarker(markerOptions);
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 12));
