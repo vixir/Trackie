@@ -1,8 +1,7 @@
-package com.vixir.trackie;
+package com.vixir.trackie.trackie;
 
 import android.Manifest;
 import android.app.Service;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -21,8 +20,6 @@ import com.google.android.gms.maps.model.LatLng;
 import java.util.ArrayList;
 
 import io.realm.Realm;
-import io.realm.RealmList;
-import io.realm.RealmQuery;
 import io.realm.RealmResults;
 
 public class LocationUpdateService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {

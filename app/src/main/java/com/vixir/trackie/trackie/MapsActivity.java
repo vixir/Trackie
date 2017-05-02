@@ -1,4 +1,4 @@
-package com.vixir.trackie;
+package com.vixir.trackie.trackie;
 
 import android.Manifest;
 import android.app.ActivityManager;
@@ -37,7 +37,6 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -50,7 +49,6 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import butterknife.BindView;
@@ -89,12 +87,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @BindView(R.id.shift_end_message)
     protected TextView shiftEndMessage;
 
-    //TODO toolbar title ONTRIP
-    //TODO update the button text as start or stop.
-    //TODO update table as false and note the end timestamp in the table
-    //TODO button text change, bottom bar layout with start stop.
-    //TODO open new activity to view map or same activity to view map, showing details of the trip.
-    //TODO Layout change when trip stops. Trip stops bottom bar will show the total time and map will pause. On bottombar dismissed user can start new trip.
+    //TODO update table as false.
+    //TODO let user look at past trips
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -445,7 +439,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         for (LatLng item : points) {
             bc.include(item);
         }
-        mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bc.build(), 50));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bc.build(), 13));
     }
 
     @Override

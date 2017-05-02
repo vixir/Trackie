@@ -1,6 +1,14 @@
 apply plugin: 'com.android.application'
 apply plugin: 'realm-android'
 android {
+    signingConfigs {
+        release_config {
+            keyAlias 'KEY_ALIAS_HERE'
+            keyPassword 'KEY_PASSWORD_HERE'
+            storeFile file('STORE_FILE_HERE')
+            storePassword 'STORE_PASSWORD_HERE'
+        }
+    }
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
     defaultConfig {
@@ -13,8 +21,11 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            debuggable false
+            jniDebuggable false
+            signingConfig signingConfigs.release_config
         }
     }
 }
@@ -24,7 +35,7 @@ repositories {
     }
 }
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
@@ -36,7 +47,7 @@ dependencies {
     compile 'com.google.android.gms:play-services-places:10.2.1'
     compile 'com.firebase:firebase-jobdispatcher:0.6.0'
     compile 'com.airbnb.android:lottie:2.0.0-beta4'
-//    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    //    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
     compile 'com.jakewharton:butterknife:8.5.1'
     compile 'com.facebook.stetho:stetho:1.5.0'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.5.1'

@@ -1,4 +1,4 @@
-package com.vixir.trackie;
+package com.vixir.trackie.trackie;
 
 import android.app.Application;
 

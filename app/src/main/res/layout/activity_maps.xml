@@ -36,8 +36,8 @@
         android:text="@string/total_shift_time"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textColor="@android:color/white"
-        android:textStyle="bold"
         android:visibility="gone" />
+
     <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/animation_view"
         android:layout_width="match_parent"

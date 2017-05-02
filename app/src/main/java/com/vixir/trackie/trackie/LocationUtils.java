@@ -1,5 +1,4 @@
-package com.vixir.trackie;
-
+package com.vixir.trackie.trackie;
 import android.location.Location;
 import android.support.v7.app.AppCompatActivity;
 

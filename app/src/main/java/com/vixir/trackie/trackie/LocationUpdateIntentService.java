@@ -1,4 +1,4 @@
-package com.vixir.trackie;
+package com.vixir.trackie.trackie;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -8,7 +8,7 @@ import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 
-import static com.vixir.trackie.MapsActivity.START_LOC;
+import static com.vixir.trackie.trackie.MapsActivity.START_LOC;
 
 
 public class LocationUpdateIntentService extends IntentService {
