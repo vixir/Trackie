@@ -12,3 +12,6 @@ App to track user's location.
 ## Snapshot
 
 <img src="http://i.imgur.com/C07IopE.png" width="280"/>
+
+
+## [release.apk](https://github.com/vixir/Trackie/blob/master/app/app-release.apk)
